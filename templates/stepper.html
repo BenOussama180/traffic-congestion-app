@@ -1,0 +1,332 @@
+{% extends "layout.html" %} {% block sideImg %}
+<div>
+  <img
+    class="flex-none object-cover w-full shadow-xl h-96 rounded-2xl lg:aspect-square lg:h-auto lg:max-w-sm"
+    src="https://images.unsplash.com/photo-1604357209793-fca5dca89f97?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8N3x8ZGlyZWN0aW9uc3xlbnwwfHwwfHx8MA%3D%3D"
+    alt=""
+  />
+</div>
+{% endblock %} {% block content %}
+<div
+  x-data="stepper()"
+  class="flex flex-col items-center justify-center w-full"
+>
+  <!-- inclue header -->
+  {% include 'components/header.html' %}
+  <!-- end include -->
+  <!-- inclue loading -->
+  {% include 'components/loading.html' %}
+  <!-- end include -->
+  <div x-show="!isLoading" class="w-full mt-4 text-white">
+    <div
+      x-show="isCurrentStep(1)"
+      class="flex items-center justify-center gap-10"
+      style="gap: 40px"
+    >
+      <div class="mx-4">
+        <label for="date" class="block text-sm font-medium leading-6"
+          >Date
+        </label>
+        <div class="mt-2">
+          <input
+            x-model="formData.date"
+            type="date"
+            id="date"
+            class="block w-full rounded-md border-0 text-black py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+          />
+        </div>
+        <p class="mt-2 text-sm text-gray-300" id="email-description">
+          Veuillez insérer la date de votre voyage.
+        </p>
+      </div>
+      <div>
+        <label for="time" class="block text-sm font-medium leading-6"
+          >Temps</label
+        >
+        <div class="mt-2">
+          <input
+            x-model="formData.time"
+            type="time"
+            id="time"
+            class="block w-full rounded-md border-0 py-1.5 text-black shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+          />
+        </div>
+        <p class="mt-2 text-sm text-gray-300" id="email-description">
+          Veuillez insérer quand allez-vous partir.
+        </p>
+      </div>
+    </div>
+
+    <div x-show="isCurrentStep(2)" class="max-w-md mx-auto">
+      <div>
+        <label for="dayOfTheWeek" class="block text-sm font-medium leading-6">
+          Jour du voyage
+        </label>
+        <select
+          x-model="formData.dayOfTheWeek"
+          id="dayOfTheWeek"
+          name="dayOfTheWeek"
+          class="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
+        >
+          <option value hidden="">Veuillez choisir un jour</option>
+          <template
+            x-for="day in ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']"
+          >
+            <option :value="day" x-text="day"></option>
+          </template>
+        </select>
+      </div>
+      <div class="mt-6">
+        <label for="VehiclesNbr" class="block text-sm font-medium leading-6"
+          >Nombre de véhicules sur la route (Optionel)</label
+        >
+        <select
+          x-model="formData.VehiclesNbr"
+          id="VehiclesNbr"
+          name="VehiclesNbr"
+          class="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
+        >
+          <option value hidden="">Veuillez choisir un nombre</option>
+          <option value="-10">moins de 10</option>
+          <option value="10-20">entre 10 et 20</option>
+          <option value="20-40">entre 20 et 40</option>
+          <option value="40-80 ">entre 40 et 80</option>
+          <option value="100+">plus que 100</option>
+        </select>
+        <p class="mt-2 text-sm text-gray-300" id="email-description">
+          Si vous avez une idée sur le nombre de véhicules qui sera sur la route
+          durant votre voyage, veuillez l'insérer.
+        </p>
+      </div>
+    </div>
+
+    <div x-show="isCurrentStep(3)">
+      <div class="max-w-2xl mx-auto text-center">
+        <div class="flex items-center justify-center">
+          <svg class="transform rotate-90 w-72 h-72">
+            <circle
+              cx="145"
+              cy="145"
+              r="80"
+              stroke="currentColor"
+              stroke-width="30"
+              fill="transparent"
+              class="text-[#E5EBFB]"
+            />
+
+            <circle
+              cx="145"
+              cy="145"
+              r="80"
+              stroke="currentColor"
+              stroke-width="30"
+              fill="transparent"
+              :stroke-dasharray="circumference"
+              :stroke-dashoffset="circumference - accuracy / 100 * circumference"
+              :class="{
+              'text-red-500': accuracy <= 33.33,
+              'text-yellow-300': accuracy > 33.33 && accuracy <= 66.66,
+              'text-green-500': accuracy > 66.66,
+            }"
+              stroke-linecap="round"
+            />
+          </svg>
+          <div class="absolute">
+            <span
+              class="text-3xl text-center"
+              :class="{
+              'text-red-500': accuracy <= 33.33,
+              'text-yellow-300': accuracy > 33.33 && accuracy <= 66.66,
+              'text-green-500': accuracy > 66.66,
+            }"
+              x-text="`${accuracy} %`"
+            ></span>
+          </div>
+        </div>
+        <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+          La Situation de la route est
+          <span
+            x-text="getRoadSituation()"
+            :class="getColorBasedOnResult"
+          ></span>
+          !
+        </h2>
+        <div class="flex items-center justify-center mt-10 gap-x-6">
+          <a
+            href="{{ url_for('index') }}"
+            class="text-sm font-semibold leading-6 text-white"
+            >Revenir à la page d'acceuil <span aria-hidden="true">→</span></a
+          >
+        </div>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-end gap-4 mt-8">
+      <button
+        @click="prevStep()"
+        x-show="!isCurrentStep(1) && !isCurrentStep(3)"
+        class="relative inline-block px-8 py-3 overflow-hidden border border-indigo-600 group focus:outline-none focus:ring"
+      >
+        <span
+          class="absolute inset-y-0 right-0 w-[2px] bg-indigo-600 transition-all group-hover:w-full group-active:bg-indigo-500"
+        ></span>
+
+        <span
+          class="relative text-sm font-medium text-indigo-600 transition-colors group-hover:text-white"
+        >
+          Précédent
+        </span>
+      </button>
+
+      <button
+        @click="nextStep()"
+        x-show="!isCurrentStep(2) && !isCurrentStep(3)"
+        class="relative inline-block px-8 py-3 overflow-hidden border border-indigo-600 group focus:outline-none focus:ring"
+      >
+        <span
+          class="absolute inset-y-0 left-0 w-[2px] bg-indigo-600 transition-all group-hover:w-full group-active:bg-indigo-500"
+        ></span>
+
+        <span
+          class="relative text-sm font-medium text-indigo-600 transition-colors group-hover:text-white"
+        >
+          Suivant
+        </span>
+      </button>
+      <button
+        @click="handleFormSubmit()"
+        x-show="isCurrentStep(2)"
+        :disabled="!areAllStepsValid()"
+        class="text-green-800 bg-green-200 px-8 py-3 rounded-sm font-semibold animate-pulse shadow-lg focus:shadow-xl hover:shadow-xl active:shadow transform hover:-translate-y-0.5 active:translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-opacity-50 duration-300 ease-in-out disabled:cursor-not-allowed disabled:opacity-50 disabled:!text-red-800 disabled:!bg-red-200"
+      >
+        Prédire!
+      </button>
+    </div>
+  </div>
+</div>
+<script>
+  const stepper = () => {
+    return {
+      step: 3,
+      isLoading: false,
+      formData: {
+        date: null,
+        time: null,
+        dayOfTheWeek: null,
+        VehiclesNbr: null,
+      },
+      accuracy: null,
+      result: null,
+      circumference: ((2 * 22) / 7) * 80,
+      getRoadSituation() {
+        if (!this.accuracy && !this.result) {
+          return "Inconnue";
+        }
+        if (this.result === 1 || this.result === "1") {
+          return "Bonne";
+        }
+        if (this.result === 2 || this.result === "2") {
+          return "Moyenne";
+        }
+        if (this.result === 3 || this.result === "3") {
+          return "Mavaise";
+        }
+      },
+      getColorBasedOnResult() {
+        if (!this.accuracy && !this.result) {
+          return "text-gray-500";
+        }
+        if (this.result === 1 || this.result === "1") {
+          return "text-green-500";
+        }
+        if (this.result === 2 || this.result === "2") {
+          return "text-yellow-300";
+        }
+        if (this.result === 3 || this.result === "3") {
+          return "text-red-500";
+        }
+      },
+      areAllStepsValid() {
+        //check if every key in formData has a value
+        return Object.values(this.formData).every((value) => value);
+      },
+      validateSteps() {
+        // validate step 1
+        if (this.step === 1) {
+          if (!this.formData.date) {
+            alert("Veuillez insérer la date de votre voyage.");
+            return false;
+          }
+          if (!this.formData.time) {
+            alert("Veuillez insérer quand allez-vous partir.");
+            return false;
+          }
+        }
+        // validate step 2
+        if (this.step === 2) {
+          if (!this.formData.dayOfTheWeek) {
+            alert("Veuillez choisir un jour.");
+            return false;
+          }
+        }
+        return true;
+      },
+      handleFormSubmit() {
+        this.isLoading = true;
+        // make the api call to backend
+        //simulate api call with timeout
+        setTimeout(() => {
+          this.isLoading = false;
+        }, 1000);
+        //switch to step 3
+        this.step = 3;
+      },
+      handleLoading(callback) {
+        this.isLoading = true;
+        setTimeout(() => {
+          if (callback) {
+            callback();
+          }
+          this.isLoading = false;
+        }, 1000);
+      },
+      nextStep() {
+        if (!this.validateSteps()) {
+          return;
+        }
+        if (this.step === 3) {
+          return;
+        }
+        this.handleLoading();
+        this.step++;
+      },
+      prevStep() {
+        if (!this.validateSteps()) {
+          return;
+        }
+        if (this.step === 1) {
+          return;
+        }
+        this.handleLoading();
+        this.step--;
+      },
+      goToStep(step) {
+        if (!this.validateSteps()) {
+          return;
+        }
+        if (step === this.step) {
+          return;
+        }
+        this.handleLoading();
+        this.step = step;
+      },
+      isCurrentStep(step) {
+        return this.step === step;
+      },
+      isStepCompleted(step) {
+        return this.step > step;
+      },
+    };
+  };
+</script>
+{% endblock %}
