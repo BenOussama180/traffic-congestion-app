@@ -4,10 +4,8 @@
 python app.py
 ```
 
-````
-
 2. Run the following command to compile and watch for changes for the Tailwind CSS file:
 
 ```bash
 npm run watch
-````
+```
