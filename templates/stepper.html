@@ -29,7 +29,7 @@
         </label>
         <div class="mt-2">
           <input
-            x-model="formData.date"
+            x-model="formData.Date"
             type="date"
             id="date"
             class="block w-full rounded-md border-0 text-black py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
@@ -45,7 +45,7 @@
         >
         <div class="mt-2">
           <input
-            x-model="formData.time"
+            x-model="formData.Time"
             type="time"
             id="time"
             class="block w-full rounded-md border-0 py-1.5 text-black shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
@@ -70,9 +70,9 @@
         >
           <option value hidden="">Veuillez choisir un jour</option>
           <template
-            x-for="day in ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']"
+            x-for="(day, index) in ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']"
           >
-            <option :value="day" x-text="day"></option>
+            <option :value="index+1" x-text="day"></option>
           </template>
         </select>
       </div>
@@ -81,7 +81,7 @@
           >Nombre de véhicules sur la route (Optionel)</label
         >
         <select
-          x-model="formData.VehiclesNbr"
+          x-model="formData.Total"
           id="VehiclesNbr"
           name="VehiclesNbr"
           class="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
@@ -207,19 +207,19 @@
 <script>
   const stepper = () => {
     return {
-      step: 3,
+      step: 1,
       isLoading: false,
       formData: {
-        date: null,
-        time: null,
+        Date: null,
+        Time: null,
         dayOfTheWeek: null,
-        VehiclesNbr: null,
+        Total: null,
       },
       accuracy: null,
       result: null,
       circumference: ((2 * 22) / 7) * 80,
       getRoadSituation() {
-        if (!this.accuracy && !this.result) {
+        if (!this.accuracy || !this.result) {
           return "Inconnue";
         }
         if (this.result === 1 || this.result === "1") {
@@ -253,11 +253,11 @@
       validateSteps() {
         // validate step 1
         if (this.step === 1) {
-          if (!this.formData.date) {
+          if (!this.formData.Date) {
             alert("Veuillez insérer la date de votre voyage.");
             return false;
           }
-          if (!this.formData.time) {
+          if (!this.formData.Time) {
             alert("Veuillez insérer quand allez-vous partir.");
             return false;
           }
@@ -271,15 +271,32 @@
         }
         return true;
       },
-      handleFormSubmit() {
+      async handleFormSubmit() {
         this.isLoading = true;
         // make the api call to backend
-        //simulate api call with timeout
-        setTimeout(() => {
-          this.isLoading = false;
-        }, 1000);
+        //call the /predit endpoint and pass it the formData
+        fetch("http://127.0.0.1:5000/predict", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(this.formData),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log("data:", data);
+            this.accuracy = data.accuracy;
+            this.result = data.result;
+            this.step = 3;
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("Une erreur s'est produite, veuillez réessayer.");
+          })
+          .finally(() => {
+            this.isLoading = false;
+          });
         //switch to step 3
-        this.step = 3;
       },
       handleLoading(callback) {
         this.isLoading = true;
